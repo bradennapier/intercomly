@@ -1,3 +1,6 @@
-export default function hi() {
-  console.log('hi');
-}
+import { IntercomlyClient } from './client';
+
+export * from './types';
+
+export { IntercomlyClient };
+export default IntercomlyClient;

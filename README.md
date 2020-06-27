@@ -1,6 +1,8 @@
 # intercomly
 
-A Typescript API for Intercom - Unfinished
+A Typescript API for Intercom API v2.0 - Unfinished
+
+- [Intercom API Documentation](https://developers.intercom.com/intercom-api-reference/reference)
 
 ```typescript
 for await (const contacts of client.getContactsByEmailPaginated('test@example.com')) {

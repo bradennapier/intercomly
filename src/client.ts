@@ -35,7 +35,6 @@ applyMixins(IntercomlyClient, [
   IntercomTags,
 ]);
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IntercomlyClient
   extends IntercomDataAttributes,
     IntercomContacts,

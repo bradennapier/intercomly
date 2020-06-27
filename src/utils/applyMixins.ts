@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export default function applyMixins(
   derivedConstructor: { [key: string]: any },
   baseConstructors: Array<{ [key: string]: any }>,

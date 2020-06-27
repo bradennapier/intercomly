@@ -7,13 +7,13 @@ module.exports = {
       {
         replacements: [
           {
-            files: ['lib/constants.js'],
+            files: ['lib/utils/constants.js'],
             from: '__VERSION__',
             // eslint-disable-next-line no-template-curly-in-string
             to: '${nextRelease.version}',
             results: [
               {
-                file: 'lib/constants.js',
+                file: 'lib/utils/constants.js',
                 hasChanged: true,
                 numMatches: 1,
                 numReplacements: 1,
@@ -28,7 +28,7 @@ module.exports = {
     [
       '@semantic-release/git',
       {
-        assets: ['lib/constants.js'],
+        assets: ['lib/utils/constants.js'],
       },
     ],
   ],

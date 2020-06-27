@@ -25,11 +25,7 @@ module.exports = {
       },
     ],
     '@semantic-release/npm',
-    [
-      '@semantic-release/git',
-      {
-        assets: ['lib/utils/constants.js'],
-      },
-    ],
+
+    '@semantic-release/git',
   ],
 };

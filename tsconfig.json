@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "pretty": true,
+    "rootDir": "src",
+    "sourceMap": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "noErrorTruncation": true,
+    "alwaysStrict": true,
+    "suppressImplicitAnyIndexErrors": false,
+    "outDir": "lib",
+    "lib": [
+      "es2018",
+      "dom"
+    ],
+    "baseUrl": "./src",
+    "importHelpers": true,
+    "plugins": [
+      {
+        "transform": "@zerollup/ts-transform-paths"
+      }
+    ]
+  },
+
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "esm"
+  ]
+}

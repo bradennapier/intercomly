@@ -25,11 +25,11 @@
     "commit": "npx git-cz",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "yarn lint --fix",
-    "lint:fix:quick:package": "pretty-quick --pattern \"package.json\"",
+    "lint:fix:quick:package": "pretty-quick --staged --pattern \"package.json\"",
     "lint:types": "tsc --noEmit",
     "release": "semantic-release",
-    "test": "echo Tests TODO",
-    "start:dev": "ts-node-dev --compiler ttypescript --respawn src/index.dev.ts"
+    "start:dev": "ts-node-dev --compiler ttypescript --respawn src/index.dev.ts",
+    "test": "echo Tests TODO"
   },
   "files": [
     "esm/",
@@ -83,6 +83,11 @@
   },
   "types": "lib/index.d.ts",
   "typings": "lib/index.d.ts",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
   "husky": {
     "hooks": {
       "pre-commit": "npm-run-all -p lint:fix:quick:* lint:types && lint-staged",
@@ -95,10 +100,5 @@
       "eslint --fix"
     ]
   },
-  "sideEffects": false,
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  }
+  "sideEffects": false
 }

@@ -42,6 +42,7 @@ export abstract class IntercomSearch {
    *
    * @docs - [Search for Contacts](https://developers.intercom.com/intercom-api-reference/reference#section-accepted-fields)
    * @docs - [Pagination & Sorting (Search)](https://developers.intercom.com/intercom-api-reference/reference#pagination-search)
+   * @category Search
    */
   async searchContacts<
     ATTR extends AnyObj,
@@ -59,6 +60,7 @@ export abstract class IntercomSearch {
      *
      * @docs - [Search for Contacts](https://developers.intercom.com/intercom-api-reference/reference#search-for-contacts)
      * @docs - [Pagination & Sorting (Search)](https://developers.intercom.com/intercom-api-reference/reference#pagination-search)
+     * @category Search
      */
     _search: SearchContactsQuery<ATTR, F>,
     /**
@@ -81,6 +83,18 @@ export abstract class IntercomSearch {
     return results;
   }
 
+  /**
+   * Searchs contacts paginated
+   *
+   * @template ATTR
+   * @template F
+   * @template S
+   * @param this
+   * @param search
+   * @param [handleRateLimiting]
+   * @category Search
+   * @returns contacts paginated
+   */
   async *searchContactsPaginated<
     ATTR extends AnyObj,
     F extends SearchableFields = SearchableFields,

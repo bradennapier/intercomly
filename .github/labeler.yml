@@ -1,0 +1,35 @@
+"endpoint/contacts": 
+  - src/endpoints/contacts.ts
+"endpoint/attributes":
+  - src/endpoints/attributes.ts
+"endpoint/search":
+  - src/endpoints/search.ts
+"endpoint/tags":
+  - src/endpoints/tags.ts
+"utils":
+  - src/utils/**/*
+"client": 
+  - src/client.ts
+"types":
+  - src/types.ts
+"package.json":
+  - package.json
+  - yarn.lock
+"github-config":
+  - .github/workflows/**/*
+  - .gitignore
+"release-config":
+  - release.config.js
+  - tsconfig.json
+  - .nvmrc
+"lint-config":
+  - eslintrc.js
+  - eslintignore
+  - .prettierrc.js
+  - tsconfig.eslint.json
+  - .editorconfig
+"readme":
+  - README.md
+  - CHANGELOG.md
+  - LICENSE
+  - '**/*.md'

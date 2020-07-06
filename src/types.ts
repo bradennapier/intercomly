@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HTTPError } from 'got';
+import { SEARCH_OPERATORS, SEARCH_NESTED_OPERATORS } from 'utils/constants';
 
 export type ClientOptions = {
   /**
@@ -14,6 +16,21 @@ export type ClientOptions = {
    */
   keepalive?: boolean;
 };
+
+// #region Utility Types
+
+/**
+ * Only a single property of the given type is allowed:
+ * { one: string; two: number } -> { one: string; two?: undefined } | { two: number; one?: undefined }
+ */
+type SinglePropertyAllowedIn<T extends { [key: string]: any }> = Expand<
+  {
+    [P in keyof T]: { [Q in keyof Omit<T, P>]+?: never } &
+      { [Q in P]: NonNullable<T[P]> | NonNullable<T[P]>[] };
+  }[keyof T]
+>;
+
+// #endregion
 
 // #region Intercom Errors
 
@@ -74,12 +91,12 @@ export type RequestError = HTTPError & {
 // #region Intercom Responses
 
 export type IntercomList<T> = {
-  type: 'list';
+  readonly type: 'list';
   data: T[];
 };
 
 export type IntercomPagesCursor = {
-  type: 'pages';
+  readonly type: 'pages';
   next: {
     page: number;
     starting_after: string;
@@ -96,10 +113,53 @@ export type IntercomCursorPaginatedList<T> = IntercomList<T> & {
 
 // #endregion
 
+// #region Segments
+
+/**
+ * A segment is a group of your contacts defined by rules that you set. Contacts are
+ * automatically added to the segment every time the contact updates to match those rules.
+ * You can use Search for contacts to find contacts that match the same rules.
+ *
+ * @docs - [Segment](https://developers.intercom.com/intercom-api-reference/reference#segment-model)
+ */
+export type Segment = {
+  readonly type: 'segment';
+  /** The unique id representing the segment. */
+  id: string;
+  /** The name of the segment. */
+  name: string;
+  /**
+   * The time specified for when the segment was created
+   * as a UNIX timestamp.
+   *
+   * @example
+   *  1593220312
+   */
+  created_at: number;
+  /**
+   * The time specified for when the segment was updated last
+   * as a UNIX timestamp.
+   *
+   * @example
+   *  1593220312
+   */
+  updated_at: number;
+  /**
+   * Type of the record: `user` or `lead.`
+   */
+  person_type: Contact['role'];
+  /**
+   * The number of items in the user segment. It's returned when `include_count=true` is included in the request.
+   * */
+  count?: number;
+};
+
+// #endregion
+
 // #region Contacts
 
 export type SocialProfile = {
-  type: 'social_profile';
+  readonly type: 'social_profile';
   /** The name of the service (ie. Twitter, Facebook, etc) */
   name: string;
   /** The profile page for the contact on the service */
@@ -107,7 +167,7 @@ export type SocialProfile = {
 };
 
 export type Location = {
-  type: 'location';
+  readonly type: 'location';
   country: null | string;
   region: null | string;
   city: null | string;
@@ -123,7 +183,7 @@ type AddressableObject<T extends 'company' | 'note' | 'tag'> = {
 };
 
 type AddressableList<T extends 'company' | 'note' | 'tag'> = {
-  type: 'list';
+  readonly type: 'list';
   /** An array of Addressable Objects (Maximum of 10). */
   data: Array<AddressableObject<T>>;
   /** The URL where the full list can be accessed (ie. /contacts/1234/companies). */
@@ -138,6 +198,9 @@ export type AnyObj = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 };
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type EmptyObj = {};
 
 export type ContactCreate<
   R extends Contact['role'],
@@ -213,7 +276,7 @@ export type Contact<
   R extends 'user' | 'lead' = 'user' | 'lead'
 > = {
   /** The type of object */
-  type: 'contact';
+  readonly type: 'contact';
   /** The unique identifier for the contact which is given by Intercom.  */
   id: string;
   /** The id of the workspace which the contact belongs to. */
@@ -255,6 +318,7 @@ export type Contact<
   os: null | string;
   /** An object showing location details of the contact. */
   location: Location;
+
   /** The custom attributes which are set for the contact. */
   custom_attributes: ATTR;
   /** The tags which have been added to the contact. */
@@ -263,8 +327,10 @@ export type Contact<
   notes: AddressableList<'note'>;
   /** The companies which the contact belongs to. */
   companies: AddressableList<'company'>;
+
   /** The name of the Android app which the contact is using. */
   android_app_name: null | string;
+  android_device: null | string;
   /** The version of the Android app which the contact is using. */
   android_app_version: null | string;
   /** The version of the Android OS which the contact is using. */
@@ -352,6 +418,163 @@ export type Contact<
    *  1593220312
    */
   last_email_clicked_at: null | number;
+};
+
+// #endregion
+
+// #region Search
+
+/**
+ * This is a special convention to keep type safety that we allow.  When searching you may
+ * provide an object instead of value which is
+ * { custom_attributes: { [ONE KEY OF Contact['custom_attributes']] : ValueOfAttribute } }
+ */
+type SearchableAttributes<ATTR extends AnyObj> = SinglePropertyAllowedIn<ATTR>;
+
+export type CustomAttributeQueryFormatted<
+  ATTR extends AnyObj,
+  F extends keyof ATTR
+> = {
+  field: string;
+  operator: SearchPropertyOperators;
+  value: ATTR[F] | ATTR[F][];
+};
+
+type SearchableContactFields =
+  | 'id'
+  | 'name'
+  | 'role'
+  | 'avatar'
+  | 'owner_id'
+  | 'email'
+  | 'phone'
+  | 'external_id'
+  | 'created_at'
+  | 'signed_up_at'
+  | 'updated_at'
+  | 'last_seen_at'
+  | 'last_contacted_at'
+  | 'last_replied_at'
+  | 'last_email_opened_at'
+  | 'last_email_clicked_at'
+  | 'language_override'
+  | 'browser'
+  | 'browser_language'
+  | 'os'
+  | 'unsubscribed_from_emails'
+  | 'marked_email_as_spam'
+  | 'has_hard_bounced'
+  | 'ios_last_seen_at'
+  | 'ios_app_version'
+  | 'ios_device'
+  | 'ios_os_version'
+  | 'ios_sdk_version'
+  | 'android_last_seen_at'
+  | 'android_app_version'
+  | 'android_device'
+  | 'android_app_name'
+  | 'android_sdk_version';
+
+// type $QueryError<E, F, OP> = {
+//   field: F;
+//   operator: OP;
+//   value: E;
+// };
+
+type SearchableContactRaw<ATTR extends AnyObj, F = any> = Pick<
+  Contact,
+  SearchableContactFields
+> & {
+  custom_attributes: SearchableAttributes<ATTR>;
+  tag_id: Tag['id'];
+  segment_id: Segment['id'];
+  'location.country': Contact['location']['country'];
+  'location.region': Contact['location']['region'];
+  'location.city': Contact['location']['city'];
+  '<-- INVALID_VALUE_FOR_FIELD': { __EXPECTED: F };
+};
+
+type SearchableContact<
+  ATTR extends AnyObj,
+  F extends SearchableFields | unknown = unknown,
+  O = NonNullable<SearchableContactRaw<ATTR, F>>
+> = O extends infer OBJ
+  ? {
+      [K in keyof OBJ]: O[K];
+    }
+  : never;
+
+export type SearchPropertyQuery<
+  F extends SearchableFields,
+  ATTR extends AnyObj = EmptyObj
+> = F extends any
+  ? {
+      field: F;
+      operator: SearchPropertyOperators;
+      value: SearchableContact<ATTR>[F];
+    }
+  : never;
+
+export type SearchNestedQuery<
+  ATTR extends AnyObj = EmptyObj,
+  F extends SearchableFields = SearchableFields,
+  OP extends NestedSearchOperators = NestedSearchOperators
+> = {
+  operator: OP;
+  value:
+    | Array<SearchNestedQuery<ATTR, F>>
+    | Array<SearchPropertyQuery<F, ATTR>>;
+};
+
+export type SearchContactsQuery<
+  ATTR extends AnyObj = EmptyObj,
+  F extends SearchableFields = SearchableFields
+> = {
+  query: SearchPropertyQuery<F, ATTR> | SearchNestedQuery<ATTR, F>;
+  sort?: SearchSort;
+  pagination?: SearchPagination;
+};
+
+/**
+ * The fields that can be used to search for contacts.
+ */
+export type SearchableFields = keyof SearchableContactRaw<EmptyObj>;
+
+/**
+ * Accepted search operators to create nested search queries
+ *
+ * @docs - [Accepted Operators](https://developers.intercom.com/intercom-api-reference/reference#section-accepted-operators)
+ */
+export type NestedSearchOperators = typeof SEARCH_NESTED_OPERATORS[number];
+
+/**
+ * Accepted search operators for search queries.
+ *
+ * @docs - [Accepted Operators](https://developers.intercom.com/intercom-api-reference/reference#section-accepted-operators)
+ */
+export type SearchPropertyOperators = typeof SEARCH_OPERATORS[number];
+
+/**
+ * Accepted search operators for both queries and nested queries.
+ *
+ * @docs - [Accepted Operators](https://developers.intercom.com/intercom-api-reference/reference#section-accepted-operators)
+ */
+export type SearchOperators = NestedSearchOperators | SearchPropertyOperators;
+
+export type SearchSort = {
+  /**
+   * Any searchable attribute (available on the Simple Query “Allowed fields“).
+   *
+   * @docs - [Searchable Fields](https://developers.intercom.com/intercom-api-reference/reference#section-accepted-fields)
+   */
+  field: SearchableFields;
+  /** Either “ascending” or “descending” - default to “descending” if none is provided. */
+  order?: 'ascending' | 'decending';
+};
+
+export type SearchPagination = {
+  per_page?: number;
+  starting_after?: string;
 };
 
 // #endregion

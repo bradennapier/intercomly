@@ -9,6 +9,7 @@ import {
   IntercomDataAttributes,
   IntercomContacts,
   IntercomTags,
+  IntercomSearch,
 } from './endpoints';
 
 class IntercomlyClient {
@@ -32,6 +33,7 @@ class IntercomlyClient {
 applyMixins(IntercomlyClient, [
   IntercomDataAttributes,
   IntercomContacts,
+  IntercomSearch,
   IntercomTags,
 ]);
 
@@ -39,6 +41,7 @@ applyMixins(IntercomlyClient, [
 interface IntercomlyClient
   extends IntercomDataAttributes,
     IntercomContacts,
+    IntercomSearch,
     IntercomTags {}
 
 export { IntercomlyClient };

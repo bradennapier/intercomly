@@ -256,7 +256,7 @@ export default class IntercomlyRequest {
      * Default is 50.
      * Max is 150.
      */
-    _body: { [key: string]: unknown; pagination?: { per_page: number } },
+    _body: { [key: string]: unknown; pagination?: { per_page?: number } },
     /**
      * Automatically handle rate limiting by retrying at 1 second intervals for up to 10 seconds
      * before throwing an error?

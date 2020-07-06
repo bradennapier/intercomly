@@ -80,3 +80,4 @@ src/parser.ts
 
 storybook-static/
 package-lock.json
+index.dev.*

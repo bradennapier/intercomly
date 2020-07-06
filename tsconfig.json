@@ -14,10 +14,13 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "downlevelIteration": true,
     "noErrorTruncation": true,
     "alwaysStrict": true,
+    "diagnostics": true,
     "suppressImplicitAnyIndexErrors": false,
     "outDir": "lib",
     "lib": [

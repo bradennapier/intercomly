@@ -9,6 +9,7 @@ import {
   AnyObj,
   ContactCreate,
   ContactCreateLead,
+  SearchPagination,
 } from 'types';
 
 import { getSearchParams } from 'utils/helpers';
@@ -52,10 +53,10 @@ export abstract class IntercomContacts {
     R extends Contact['role'] = Contact['role']
   >(
     this: IntercomlyClient,
-    userId: string,
+    contactId: string,
     contact: ContactCreate<R, ATTR>,
   ): Promise<Contact<ATTR, R>> {
-    return this.request.put<Contact<ATTR, R>>(`contacts/${userId}`, contact);
+    return this.request.put<Contact<ATTR, R>>(`contacts/${contactId}`, contact);
   }
 
   /**
@@ -82,6 +83,55 @@ export abstract class IntercomContacts {
       return this.createContact<ATTR, R>(contact);
     }
     return this.updateContact<ATTR, R>(existingUser.id, contact);
+  }
+
+  /**
+   * Archives a single contact by the Intercom internal id.  Optionally provide a second
+   * argument to determine if the user should instead be unarchived.  Defaults to true.
+   *
+   * @example
+   *  // archive the user
+   *  await client.archiveContact('123456')
+   *  // unarchive the user now
+   *  await client.archiveContact('123456', false)
+   */
+  async archiveContact<ID extends string>(
+    this: IntercomlyClient,
+    contactId: ID,
+    /**
+     * By setting this to false, you can specify to unarchive a user instead.
+     */
+    archive = true,
+  ): Promise<{ id: ID; object: 'contact'; archived: 'true' | 'false' }> {
+    if (!contactId) {
+      throw new Error(
+        '[ERROR] | intercomly | archiveContact | property "contactId" is required',
+      );
+    }
+    return this.request.post<{
+      id: ID;
+      object: 'contact';
+      archived: 'true' | 'false';
+    }>(`contacts/${contactId}/${archive ? 'archive' : 'unarchive'}`);
+  }
+
+  /**
+   * Deletes a single contact by the Intercom internal id.
+   */
+  async deleteContact<ID extends string>(
+    this: IntercomlyClient,
+    contactId: ID,
+  ): Promise<{ id: ID; object: 'contact'; deleted: 'true' | 'false' }> {
+    if (!contactId) {
+      throw new Error(
+        '[ERROR] | intercomly | deleteContact | property "contactId" is required',
+      );
+    }
+    return this.request.delete<{
+      id: ID;
+      object: 'contact';
+      deleted: 'true' | 'false';
+    }>(`contacts/${contactId}`);
   }
 
   /**
@@ -141,10 +191,7 @@ export abstract class IntercomContacts {
      *
      * @docs [Pagination & Sorting (Search)](https://developers.intercom.com/intercom-api-reference/reference#pagination-search)
      */
-    pagination?: {
-      per_page?: number;
-      starting_after?: string;
-    },
+    pagination?: SearchPagination,
   ): Promise<IntercomCursorPaginatedList<Contact<ATTR>>> {
     const results = await this.request.post<
       IntercomCursorPaginatedList<Contact<ATTR>>
@@ -173,64 +220,12 @@ export abstract class IntercomContacts {
    */
   async getContacts<ATTR extends AnyObj>(
     this: IntercomlyClient,
-    searchParams?:
-      | string
-      | {
-          per_page?: string;
-          starting_after?: string;
-        }
-      | URLSearchParams,
+    searchParams?: string | SearchPagination | URLSearchParams,
   ): Promise<IntercomCursorPaginatedList<Contact<ATTR>>> {
     return this.request.get<IntercomCursorPaginatedList<Contact<ATTR>>>(
       'contacts',
       getSearchParams(searchParams),
     );
-  }
-
-  /**
-   * An AsyncGenerator which allows easily recursing through the paginated contacts list.
-   * By default each batch will include 50 results and the max is 150.  A third parameter
-   * can be provided to indicate whether rate limiting should automatically be handled (this
-   * defaults to true).
-   *
-   * @docs [List Contacts](https://developers.intercom.com/intercom-api-reference/reference#list-contacts)
-   * @docs [Pagination (Cursor)](https://developers.intercom.com/intercom-api-reference/reference#pagination-cursor)
-   * @docs [Rate Limiting](https://developers.intercom.com/intercom-api-reference/reference#rate-limiting)
-   *
-   * @example
-   *  for await (const contacts of client.getContactsPaginated()) {
-   *    console.log('Contacts Batch: ', contacts)
-   *  }
-   */
-  async *getContactsByEmailPaginated<ATTR>(
-    this: IntercomlyClient,
-    /**
-     * The number of items returned in a single response.
-     * Default is 50.
-     * Max is 150.
-     */
-    email: string,
-    /**
-     * Automatically handle rate limiting by retrying at 1 second intervals for up to 10 seconds
-     * before throwing an error?
-     */
-    handleRateLimiting = true,
-  ): AsyncGenerator<Contact<ATTR>[], void, void> {
-    for await (const contacts of this.request.postCursorPaginated<
-      Contact<ATTR>
-    >(
-      'contacts/search',
-      {
-        query: {
-          field: 'email',
-          operator: '=',
-          value: email,
-        },
-      },
-      handleRateLimiting,
-    )) {
-      yield contacts;
-    }
   }
 
   /**

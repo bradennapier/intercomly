@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HTTPError } from 'got';
 import { SEARCH_OPERATORS, SEARCH_NESTED_OPERATORS } from 'utils/constants';
 
